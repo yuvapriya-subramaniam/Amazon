@@ -9,14 +9,13 @@ const signup = async (req, res) => {
   session.startTransaction();
   try {
     const { name, mobile, email, password } = req.body;
-    const hashedPassword = await bcrypt.hash(password, 10);
     const user = await User.create(
       [
         {
           name,
           mobile,
           email,
-          password: hashedPassword,
+          password: password,
         },
       ],
       { session }

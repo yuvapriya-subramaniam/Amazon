@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
 const validator = require("validator");
+const bcrypt = require("bcrypt");
 
 const userSchema = new Schema(
   {
@@ -55,6 +56,24 @@ const userSchema = new Schema(
     timestamps: true,
   }
 );
+
+// Hash password before saving if the password is modified
+userSchema.pre('save', async function(next) {
+  const user = this;
+  // Only hash the password if it has been modified (during user creation or password change)
+  if (user.isModified('password')) {
+    try {
+      const hashedPassword = await bcrypt.hash(user.password, 10);
+      user.password = hashedPassword;
+      //Proceed with saving
+      next();
+    } catch (err) {
+      next(err);
+    }
+  } else {
+    next(); // Proceed with saving without modifying password
+  }
+});
 
 const User = mongoose.model("User", userSchema);
 
