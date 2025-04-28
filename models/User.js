@@ -13,15 +13,15 @@ const userSchema = new Schema(
     },
     mobile: {
       type: String,
-      minLength: 11,
-      maxLength: 15,
+      min: 11,
+      max: 13,
       unique: [ 
         true,
         "User is already registered",
       ],
       required: [true, "Mobile number is required"],
       validate: {
-        validator: value => validator.isMobilePhone(value, "any", {strictMode:false}),
+        validator: validator.isMobilePhone,
         message: "Mobile number is not valid",
       },
       trim: true,
