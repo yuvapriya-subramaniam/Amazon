@@ -23,11 +23,13 @@ const signup = async (req, res) => {
     await sendVerificationEmail(user[0].email);
     await session.commitTransaction();
     session.endSession();
-    res.send(`User registered. Verify email for completing registration`);
+    return res.send(
+      `User registered. Verify email for completing registration`
+    );
   } catch (error) {
     await session.abortTransaction();
     session.endSession();
-    res.status(500).send(error.message);
+    return res.status(500).send(error.message);
   }
 };
 
@@ -35,37 +37,35 @@ const login = async (req, res) => {
   try {
     const { email, password } = req.body;
     const user = await User.findOne({ email: email });
-    if (user) {
-      bcrypt.compare(password, user.password, (err, result) => {
-        if (result) {
-          if (user.verified) {
-            res.send(`Hello ${user.name}`);
-          } else {
-            res
-              .status(403)
-              .send("Verify your email to complete the registration process.");
-          }
-        } else {
-          res.status(401).send("Incorrect email or password.");
-        }
-      });
-    } else {
-      res.status(401).send("Incorrect email or password.");
+    if (!user) {
+      return res.status(401).send("Invalid credentials.");
     }
+    const isValidPassword = await bcrypt.compare(password, user.password);
+    if (!isValidPassword) {
+      return res.status(401).send("Invalid credentials.");
+    }
+    if (!user.verified) {
+      return res.status(403).send("Please verify your email.");
+    }
+    return res.send(`Hello ${user.name}`);
   } catch (error) {
-    res.status(500).send(error.message);
+    return res.status(500).send(error.message);
   }
 };
 
 const verifyEmail = async (req, res) => {
-  const email = req.query.email;
-  const user = await User.findOne({ email: email });
-  if (!user.verified) {
-    user.verified = true;
-    await user.save();
-    res.send("Your email is verified");
-  } else {
-    res.send("Already verified");
+  try {
+    const email = req.query.email;
+    const user = await User.findOne({ email: email });
+    if (!user.verified) {
+      user.verified = true;
+      await user.save();
+      return res.send("Your email is verified");
+    } else {
+      return res.send("Already verified");
+    }
+  } catch (error) {
+    return res.status(500).send(error.message);
   }
 };
 
