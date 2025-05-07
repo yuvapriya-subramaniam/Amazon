@@ -3,7 +3,9 @@ require("dotenv").config();
 const connectDB = require("./config/db");
 const apiRoutes = require("./routes");
 const app = express();
+const cookieParser = require('cookie-parser');
 
+app.use(cookieParser());
 app.use(express.json());
 const port = process.env.PORT || 3000;
 (async () => {

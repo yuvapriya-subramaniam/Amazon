@@ -2,6 +2,8 @@ const User = require("../models/User");
 const bcrypt = require("bcrypt");
 const sendVerificationEmail = require("./verifyAccount");
 const mongoose = require("mongoose");
+const userAuth = require("../middlewares/auth");
+const jwt = require('jsonwebtoken');
 
 const signup = async (req, res) => {
   // Start a session for transaction
@@ -47,6 +49,13 @@ const login = async (req, res) => {
     if (!user.verified) {
       return res.status(403).send("Please verify your email.");
     }
+    const token = await jwt.sign(
+      {
+        id: user._id,
+      },
+      process.env.SECRET_KEY
+    );
+    res.cookie("token", token);
     return res.send(`Hello ${user.name}`);
   } catch (error) {
     return res.status(500).send(error.message);
@@ -69,4 +78,12 @@ const verifyEmail = async (req, res) => {
   }
 };
 
-module.exports = { signup, login, verifyEmail };
+const userProfile = async (req, res) => {
+  try {
+    return res.send(req.user);
+  } catch (error) {
+    return res.status(400).send("Error: " + error.message);
+  }
+};
+
+module.exports = { signup, login, verifyEmail, userProfile };
