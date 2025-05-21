@@ -53,10 +53,19 @@ const login = async (req, res) => {
       {
         id: user._id,
       },
-      process.env.SECRET_KEY
+      process.env.SECRET_KEY,
+      {
+        expiresIn: "1d"
+      }
     );
     res.cookie("token", token);
-    return res.send(`Hello ${user.name}`);
+    const resData = {
+      id: user._id,
+      name: user.name,
+      mobile: user.mobile,
+      email: user.email,
+    }
+    return res.send(resData);
   } catch (error) {
     return res.status(500).send(error.message);
   }
